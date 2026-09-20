@@ -7,13 +7,15 @@
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:loopapp/app/app_scope.dart';
 import 'package:loopapp/app/app.dart';
 
 void main() {
   testWidgets('shows splash screen before opening login', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const LoopinApp());
+    final app = await AppScope.create(child: const LoopinApp());
+    await tester.pumpWidget(app);
 
     await tester.pump(const Duration(milliseconds: 350));
     expect(find.text('LOOPIN'), findsOneWidget);

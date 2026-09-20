@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/app_state.dart';
-import '../../dashboard/home_screen.dart';
+import '../../../app/app_scope.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
   const ProfileSetupScreen({super.key});
@@ -11,13 +10,18 @@ class ProfileSetupScreen extends StatefulWidget {
 }
 
 class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
-  final _displayNameController = TextEditingController(
-    text: AppState.displayName == 'Student' ? '' : AppState.displayName,
-  );
+  late final TextEditingController _displayNameController;
+  late final TextEditingController _studyLevelController;
 
-  final _studyLevelController = TextEditingController(
-    text: AppState.studyLevel,
-  );
+  @override
+  void initState() {
+    super.initState();
+    final profile = AppScope.of(context).profile;
+    _displayNameController = TextEditingController(
+      text: profile?.displayName == 'Student' ? '' : profile?.displayName,
+    );
+    _studyLevelController = TextEditingController(text: profile?.studyLevel);
+  }
 
   @override
   void dispose() {
@@ -26,28 +30,19 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     super.dispose();
   }
 
-  void _saveProfile() {
-    final displayName = _displayNameController.text.trim();
-    final studyLevel = _studyLevelController.text.trim();
-
-    AppState.displayName = displayName.isEmpty ? 'Student' : displayName;
-    AppState.studyLevel = studyLevel;
-
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const HomeScreen(),
-      ),
-          (route) => false,
+  Future<void> _saveProfile() async {
+    await AppScope.of(context).saveProfile(
+      displayName: _displayNameController.text,
+      studyLevel: _studyLevelController.text,
     );
+    if (!mounted || AppScope.of(context).errorMessage != null) return;
+    Navigator.pushNamedAndRemoveUntil(context, '/home', (_) => false);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile Setup'),
-      ),
+      appBar: AppBar(title: const Text('Profile Setup')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -76,8 +71,16 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             ),
           ),
           const SizedBox(height: 24),
+          if (AppScope.of(context).errorMessage case final message?)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Text(
+                message,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ),
           ElevatedButton(
-            onPressed: _saveProfile,
+            onPressed: AppScope.of(context).isBusy ? null : _saveProfile,
             child: const Text('Save and continue'),
           ),
         ],

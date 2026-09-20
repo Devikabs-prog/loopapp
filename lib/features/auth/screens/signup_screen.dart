@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'profile_setup_screen.dart';
+import '../../../app/app_scope.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -22,21 +22,17 @@ class _SignupScreenState extends State<SignupScreen> {
     super.dispose();
   }
 
-  void _signup() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const ProfileSetupScreen(),
-      ),
-    );
+  Future<void> _signup() async {
+    await AppScope.of(context)
+        .signUp(_emailController.text, _passwordController.text);
+    if (!mounted || AppScope.of(context).errorMessage != null) return;
+    Navigator.pushNamedAndRemoveUntil(context, '/profile', (_) => false);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Sign up'),
-      ),
+      appBar: AppBar(title: const Text('Sign up')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -71,8 +67,16 @@ class _SignupScreenState extends State<SignupScreen> {
             ),
           ),
           const SizedBox(height: 24),
+          if (AppScope.of(context).errorMessage case final message?)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Text(
+                message,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ),
           ElevatedButton(
-            onPressed: _signup,
+            onPressed: AppScope.of(context).isBusy ? null : _signup,
             child: const Text('Create account'),
           ),
         ],

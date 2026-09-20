@@ -1,0 +1,4 @@
+interface:
+  display_name: LOOPIN Flutter Builder
+  short_description: Build LOOPIN in phased Flutter slices
+  default_prompt: Build or review the next LOOPIN Flutter vertical slice using the local-first MVP architecture and phased roadmap. Inspect the repository first, preserve scope boundaries, and verify the relevant tests.
